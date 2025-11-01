@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ trainer.name }} - Trainer Details - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-2">
+                                <i class="fas fa-user-tie me-2"></i>{{ trainer.name }}
+                            </h1>
+                            <p class="mb-0">Trainer Details & Course Assignments</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group">
+                                <a href="{% url 'admin_trainer_management' %}" class="btn btn-light">
+                                    <i class="fas fa-arrow-left me-1"></i>Back to List
+                                </a>
+                                <a href="{% url 'admin_edit_trainer' trainer.id %}" class="btn btn-warning">
+                                    <i class="fas fa-edit me-1"></i>Edit
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Trainer Information -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Trainer Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary rounded-circle p-4 d-inline-flex align-items-center justify-content-center text-white mb-3"
+                             style="width: 100px; height: 100px;">
+                            <i class="fas fa-user-tie fa-3x"></i>
+                        </div>
+                        <h4>{{ trainer.name }}</h4>
+                        <span class="badge bg-{{ trainer.specialization|lower }} fs-6 mb-2">
+                            {{ trainer.specialization }}
+                        </span>
+                        <br>
+                        <span class="badge bg-{% if trainer.is_active %}success{% else %}secondary{% endif %} fs-6">
+                            {% if trainer.is_active %}Active Trainer{% else %}Inactive Trainer{% endif %}
+                        </span>
+                    </div>
+
+                    {% if trainer.description %}
+                    <div class="trainer-bio">
+                        <h6 class="text-primary">About</h6>
+                        <p class="text-muted">{{ trainer.description|linebreaks }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="trainer-stats mt-4">
+                        <h6 class="text-primary">Statistics</h6>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <h5 class="text-primary mb-0">{{ trainer.courses.count }}</h5>
+                                    <small class="text-muted">Total Courses</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <h5 class="text-success mb-0">
+                                        {% with active_courses=trainer.courses.filter.is_active %}
+                                        {{ active_courses }}
+                                        {% endwith %}
+                                    </h5>
+                                    <small class="text-muted">Active Courses</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Assignments -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-dumbbell me-2"></i>Course Assignments ({{ courses.count }})
+                    </h6>
+                    <a href="{% url 'admin:gym_app_course_add' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>Assign New Course
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if courses %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Course Name</th>
+                                    <th>Difficulty</th>
+                                    <th>Price</th>
+                                    <th>Duration</th>
+                                    <th>Enrollments</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ course.name }}</strong>
+                                        {% if course.description %}
+                                        <br>
+                                        <small class="text-muted">{{ course.description|truncatewords:10 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ course.difficulty_level }}</span>
+                                    </td>
+                                    <td class="text-success fw-bold">₹{{ course.price }}</td>
+                                    <td>{{ course.duration_minutes }} min</td>
+                                    <td>
+                                        <span class="fw-bold">{{ course.active_enrollments }}</span> / {{ course.capacity }}
+                                        <br>
+                                        <small class="text-muted">{{ course.current_enrollment }} total</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if course.is_active %}success{% else %}secondary{% endif %}">
+                                            {% if course.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'admin:gym_app_course_change' course.id %}"
+                                               class="btn btn-outline-primary" title="Edit Course">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="#" class="btn btn-outline-info" title="View Sessions">
+                                                <i class="fas fa-calendar"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-dumbbell fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Course Assignments</h5>
+                        <p class="text-muted">This trainer is not currently assigned to any courses.</p>
+                        <a href="{% url 'admin:gym_app_course_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Assign First Course
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow mt-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <form method="POST" action="{% url 'admin_toggle_trainer_status' trainer.id %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-{% if trainer.is_active %}outline-warning{% else %}outline-success{% endif %} w-100">
+                                    <i class="fas fa-{% if trainer.is_active %}times{% else %}check{% endif %} me-1"></i>
+                                    {% if trainer.is_active %}Deactivate{% else %}Activate{% endif %} Trainer
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <a href="{% url 'admin_edit_trainer' trainer.id %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-edit me-1"></i>Edit Profile
+                            </a>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <a href="{% url 'admin:gym_app_course_add' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-plus me-1"></i>Add Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6e707e;
+    background-color: #f8f9fc;
+}
+
+.badge.fs-6 {
+    font-size: 0.9em !important;
+}
+
+.trainer-bio {
+    border-left: 4px solid #4e73df;
+    padding-left: 1rem;
+}
+</style>
+{% endblock %}

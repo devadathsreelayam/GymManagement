@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Other head elements -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <button id="pay-button">Proceed to payment</button>
+
+    <input type="hidden" value="{{ id }}" name="id">
+    <script>
+        var options = {
+            key: '{{ razorpay_api_key }}',
+            amount: '{{ amount }}',
+            currency: '{{ currency }}',
+            name: 'VehiMarket',
+            description: 'Purchase Description',
+            image: 'path_to_logo.png',
+            prefill: {
+                name: 'Your Name',
+                email: 'your_email@example.com',
+            },
+            theme: {
+                color: '#F37254',
+            },
+            handler: function(response) {
+                // This function will be called on successful payment
+                console.log(response);
+                alert('Payment successful. Payment ID: ' + response.razorpay_payment_id);
+                window.location='/myapp/user_home_get/'
+                // You can perform further actions here, like updating your database
+            },
+        };
+
+        var rzp = new Razorpay(options);
+
+        document.getElementById('pay-button').onclick = function () {
+            rzp.open();
+        };
+    </script>
+</body>
+</html>

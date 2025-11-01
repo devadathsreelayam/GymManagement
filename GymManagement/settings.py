@@ -28,6 +28,9 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+RAZORPAY_KEY_ID = 'rzp_test_MJOAVy77oMVaYv'  # Get from Razorpay dashboard
+RAZORPAY_KEY_SECRET = 'MvUZ03MPzLq3lkvMneYECQsk'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'gym_app.apps.GymAppConfig'
+    'gym_app.apps.GymAppConfig',
+    'django.contrib.humanize'
 ]
 
 MIDDLEWARE = [

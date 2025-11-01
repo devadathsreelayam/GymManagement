@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>Complete Your Payment
+                    </h2>
+                    <p class="mb-0 mt-2">FitPro Gym {{ membership_type }} Membership</p>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <div class="payment-details mb-4">
+                        <h4 class="text-primary">₹{{ amount_display }}</h4>
+                        <p class="text-muted">{{ membership_type }} Membership - One Time Payment</p>
+                    </div>
+
+                    <button id="pay-button" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-lock me-2"></i>Pay Now - ₹{{ amount_display }}
+                    </button>
+
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            Secure payment powered by Razorpay
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add CSRF token for the dynamic form -->
+{% csrf_token %}
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    var options = {
+        key: '{{ razorpay_api_key }}',
+        amount: '{{ amount }}',
+        currency: '{{ currency }}',
+        name: 'FitPro Gym',
+        description: '{{ membership_type }} Membership',
+        order_id: '{{ order_id }}',
+        handler: function(response) {
+            console.log('Payment successful:', response);
+
+            // Create a form and submit it to handle registration
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'handle_registration_after_payment' %}";
+
+            // Add CSRF token
+            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
+                           document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+            var csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            // Add payment details
+            var paymentId = document.createElement('input');
+            paymentId.type = 'hidden';
+            paymentId.name = 'razorpay_payment_id';
+            paymentId.value = response.razorpay_payment_id;
+            form.appendChild(paymentId);
+
+            var orderId = document.createElement('input');
+            orderId.type = 'hidden';
+            orderId.name = 'razorpay_order_id';
+            orderId.value = response.razorpay_order_id;
+            form.appendChild(orderId);
+
+            var signature = document.createElement('input');
+            signature.type = 'hidden';
+            signature.name = 'razorpay_signature';
+            signature.value = response.razorpay_signature;
+            form.appendChild(signature);
+
+            document.body.appendChild(form);
+            form.submit();
+        },
+        prefill: {
+            name: '{{ request.session.registration_data.first_name }} {{ request.session.registration_data.last_name }}',
+            email: '{{ request.session.registration_data.email }}',
+            contact: '{{ request.session.registration_data.phone }}'
+        },
+        theme: {
+            color: '#667eea'
+        },
+        // Enable UPI and other payment methods
+        method: {
+            upi: true,
+            netbanking: true,
+            card: true,
+            wallet: true,
+            emi: false  // Disable EMI if not needed
+        },
+        notes: {
+            membership_type: '{{ membership_type }}'
+        },
+        modal: {
+            ondismiss: function() {
+                console.log('Payment modal dismissed');
+                window.location.href = "{% url 'register' %}";
+            },
+            escape: false,
+            backdropclose: false
+        },
+        // Additional configuration for UPI
+        config: {
+            display: {
+                blocks: {
+                    upi: {
+                        name: "UPI",
+                        instruments: [
+                            {
+                                method: "upi"
+                            }
+                        ]
+                    },
+                    netbanking: {
+                        name: "Net Banking",
+                        instruments: [
+                            {
+                                method: "netbanking"
+                            }
+                        ]
+                    }
+                },
+                sequence: ["block.upi", "block.netbanking", "block.card"],
+                preferences: {
+                    show_default_blocks: true
+                }
+            }
+        }
+    };
+
+    var rzp = new Razorpay(options);
+
+    document.getElementById('pay-button').onclick = function (e) {
+        e.preventDefault();
+        rzp.open();
+    };
+
+    // Auto-open payment modal when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Opening Razorpay modal...');
+        rzp.open();
+    });
+</script>
+{% endblock %}

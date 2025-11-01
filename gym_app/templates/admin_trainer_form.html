@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if trainer %}Edit{% else %}Add{% endif %} Trainer - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h4 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-{% if trainer %}edit{% else %}plus{% endif %} me-2"></i>
+                        {% if trainer %}Edit Trainer{% else %}Add New Trainer{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- Name -->
+                            <div class="col-md-12 mb-3">
+                                <label for="name" class="form-label">Trainer Name *</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="name"
+                                       name="name"
+                                       value="{{ trainer.name|default:'' }}"
+                                       required
+                                       placeholder="Enter trainer's full name">
+                                <div class="form-text">The full name of the trainer as it should appear to members.</div>
+                            </div>
+
+                            <!-- Specialization -->
+                            <div class="col-md-6 mb-3">
+                                <label for="specialization" class="form-label">Specialization *</label>
+                                <select class="form-select" id="specialization" name="specialization" required>
+                                    <option value="">Select Specialization</option>
+                                    {% for spec_code, spec_name in specializations %}
+                                    <option value="{{ spec_code }}"
+                                            {% if trainer.specialization == spec_code %}selected{% endif %}>
+                                        {{ spec_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Primary area of expertise.</div>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="is_active"
+                                           name="is_active"
+                                           {% if trainer.is_active or not trainer %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">
+                                        Active Trainer
+                                    </label>
+                                </div>
+                                <div class="form-text">Inactive trainers won't be available for new courses.</div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12 mb-4">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control"
+                                          id="description"
+                                          name="description"
+                                          rows="4"
+                                          placeholder="Enter trainer's bio, qualifications, experience, etc.">{{ trainer.description|default:'' }}</textarea>
+                                <div class="form-text">Brief description about the trainer's background and expertise.</div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a href="{% url 'admin_trainer_management' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>
+                                        {% if trainer %}Update Trainer{% else %}Add Trainer{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Current Courses (for edit mode) -->
+            {% if trainer and trainer.courses.exists %}
+            <div class="card shadow mt-4">
+                <div class="card-header py-3 bg-info text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-dumbbell me-2"></i>Current Courses
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Course Name</th>
+                                    <th>Difficulty</th>
+                                    <th>Price</th>
+                                    <th>Enrollments</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in trainer.courses.all %}
+                                <tr>
+                                    <td>{{ course.name }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ course.difficulty_level }}</span>
+                                    </td>
+                                    <td>₹{{ course.price }}</td>
+                                    <td>{{ course.enrollments.count }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if course.is_active %}success{% else %}secondary{% endif %}">
+                                            {% if course.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> This trainer is currently assigned to {{ trainer.courses.count }} course(s).
+                        If you deactivate this trainer, they will no longer be available for new course assignments.
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6e707e;
+    background-color: #f8f9fc;
+}
+</style>
+{% endblock %}

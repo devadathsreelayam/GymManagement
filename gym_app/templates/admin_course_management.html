@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+
+{% block title %}Course Management - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-2">
+                                <i class="fas fa-dumbbell me-2"></i>Course Management
+                            </h1>
+                            <p class="mb-0">Manage all gym courses, create new courses, and update existing ones</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'admin_add_course' %}" class="btn btn-light">
+                                <i class="fas fa-plus me-1"></i>Add New Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Courses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_courses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dumbbell fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Courses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_courses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-play-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Inactive Courses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ inactive_courses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-pause-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Filtered Results
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ courses.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-filter fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-search me-2"></i>Search & Filters
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'admin_course_management' %}">
+                        <div class="row g-3">
+                            <!-- Search - Full width on mobile, 4 columns on medium+ -->
+                            <div class="col-12 col-md-4 col-lg-3">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="search"
+                                           placeholder="Search by name or description..."
+                                           value="{{ search_query }}">
+                                </div>
+                            </div>
+
+                            <!-- Trainer Filter - 6 columns on mobile, 4 on medium, 2 on large -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <select class="form-select" name="trainer">
+                                    <option value="">All Trainers</option>
+                                    {% for trainer in trainers %}
+                                    <option value="{{ trainer.id }}" {% if trainer_filter == trainer.id|stringformat:"i" %}selected{% endif %}>
+                                        {{ trainer.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Difficulty Filter - 6 columns on mobile, 4 on medium, 2 on large -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <select class="form-select" name="difficulty">
+                                    <option value="">All Levels</option>
+                                    {% for diff_code, diff_name in difficulties %}
+                                    <option value="{{ diff_code }}" {% if difficulty_filter == diff_code %}selected{% endif %}>
+                                        {{ diff_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Status Filter - 6 columns on mobile, 4 on medium, 2 on large -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <select class="form-select" name="status">
+                                    <option value="">All Status</option>
+                                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                                </select>
+                            </div>
+
+                            <!-- Sort By - 6 columns on mobile, 4 on medium, 2 on large -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <select class="form-select" name="sort">
+                                    <option value="-created_date" {% if sort_by == '-created_date' %}selected{% endif %}>Newest First</option>
+                                    <option value="created_date" {% if sort_by == 'created_date' %}selected{% endif %}>Oldest First</option>
+                                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name A-Z</option>
+                                    <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>Name Z-A</option>
+                                    <option value="-current_enrollment" {% if sort_by == '-current_enrollment' %}selected{% endif %}>Popular First</option>
+                                </select>
+                            </div>
+
+                            <!-- Buttons - Full width on mobile, 4 on medium, 1 on large -->
+                            <div class="col-12 col-md-4 col-lg-1">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary flex-grow-1 d-flex gap-2 align-items-center justify-content-center">
+                                        <i class="fas fa-filter me-1"></i>Apply
+                                    </button>
+                                    <a href="{% url 'admin_course_management' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courses Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list me-2"></i>Courses List
+                    </h6>
+                    <span class="badge bg-primary">{{ courses.count }} course(s)</span>
+                </div>
+                <div class="card-body">
+                    {% if courses %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Trainer</th>
+                                    <th>Difficulty</th>
+                                    <th>Price</th>
+                                    <th>Capacity</th>
+                                    <th>Enrollments</th>
+                                    <th>Sessions</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary rounded-circle p-2 me-3 text-white">
+                                                <i class="fas fa-dumbbell"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ course.name }}</strong>
+                                                {% if course.description %}
+                                                <br>
+                                                <small class="text-muted">{{ course.description|truncatewords:8 }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ course.trainer.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ course.trainer.specialization }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ course.difficulty_level }}</span>
+                                    </td>
+                                    <td class="text-success fw-bold">₹{{ course.price }}</td>
+                                    <td>
+                                        {{ course.capacity }} spots
+                                    </td>
+                                    <td>
+                                        <div class="progress mb-1" style="height: 8px;">
+                                            {{ course.enrollment_percentage|floatformat:0 }}
+                                            <div class="progress-bar
+                                                {% if enrollment_percentage >= 90 %}bg-danger
+                                                {% elif enrollment_percentage >= 70 %}bg-warning
+                                                {% else %}bg-success{% endif %}"
+                                                style="width: {{ enrollment_percentage }}%">
+                                            </div>
+                                        </div>
+                                        <small>{{ course.active_enrollments }} active / {{ course.current_enrollment }} total</small>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">{{ course.sessions.count }}</span> sessions
+                                        <br>
+                                        <small class="text-muted">{{ course.duration_minutes }} min each</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if course.is_active %}success{% else %}secondary{% endif %}">
+                                            {% if course.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'admin_course_detail' course.id %}"
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin_edit_course' course.id %}"
+                                               class="btn btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'admin_manage_sessions' course.id %}"
+                                               class="btn btn-outline-info" title="Manage Sessions">
+                                                <i class="fas fa-calendar"></i>
+                                            </a>
+                                            <form method="POST" action="{% url 'admin_toggle_course_status' course.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="btn btn-{% if course.is_active %}outline-warning{% else %}outline-success{% endif %}"
+                                                        title="{% if course.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                                    <i class="fas fa-{% if course.is_active %}pause{% else %}play{% endif %}"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-dumbbell fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No courses found</h5>
+                        <p class="text-muted">Try adjusting your search filters or add a new course</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{% url 'admin_course_management' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-refresh me-1"></i>Clear Filters
+                            </a>
+                            <a href="{% url 'admin_add_course' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Add First Course
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary { border-left: 4px solid #4e73df !important; }
+.border-left-success { border-left: 4px solid #1cc88a !important; }
+.border-left-warning { border-left: 4px solid #f6c23e !important; }
+.border-left-info { border-left: 4px solid #36b9cc !important; }
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6e707e;
+    background-color: #f8f9fc;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.progress {
+    background-color: #eaecf4;
+    border-radius: 4px;
+}
+</style>
+{% endblock %}

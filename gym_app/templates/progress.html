@@ -1,0 +1,525 @@
+{% extends 'base.html' %}
+{% load progress_filters %}
+
+{% block title %}Progress Tracking - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-2">
+                                <i class="fas fa-chart-line me-2"></i>Progress Tracking
+                            </h1>
+                            <p class="mb-0">Monitor your fitness journey with detailed metrics and trends</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            {% if latest_progress %}
+                            <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center"
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-weight fa-2x text-white"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Current Stats and Progress Form -->
+        <div class="col-lg-4 mb-4">
+            <!-- Current Stats Summary -->
+            {% if latest_progress %}
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Current Stats
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <div class="bg-light rounded p-3">
+                                <h3 class="text-primary mb-1">{{ latest_progress.height }}</h3>
+                                <small class="text-muted">Height (cm)</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="bg-light rounded p-3">
+                                <h3 class="text-primary mb-1">{{ latest_progress.weight }}</h3>
+                                <small class="text-muted">Weight (kg)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-primary text-white rounded p-4 mb-3">
+                        <h1 class="display-4 mb-1">{{ latest_progress.bmi }}</h1>
+                        <p class="mb-0">Current BMI</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="badge fs-6
+                            {% if latest_progress.get_bmi_category == 'Underweight' %}bg-info
+                            {% elif latest_progress.get_bmi_category == 'Normal Weight' %}bg-success
+                            {% elif latest_progress.get_bmi_category == 'Overweight' %}bg-warning
+                            {% else %}bg-danger
+                            {% endif %}">
+                            {{ latest_progress.get_bmi_category }}
+                        </span>
+                    </div>
+
+                    <small class="text-muted">
+                        Last updated: {{ latest_progress.recorded_date|date:"M d, Y" }}
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Update Progress Form -->
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>Update Progress
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'progress_tracking' %}">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Height (cm)</label>
+                            <input type="number"
+                                   name="height"
+                                   class="form-control"
+                                   value="{{ latest_progress.height|default:'' }}"
+                                   placeholder="Enter height"
+                                   min="100"
+                                   max="250"
+                                   step="0.1"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Weight (kg)</label>
+                            <input type="number"
+                                   name="weight"
+                                   class="form-control"
+                                   value="{{ latest_progress.weight|default:'' }}"
+                                   placeholder="Enter weight"
+                                   min="30"
+                                   max="200"
+                                   step="0.1"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea name="progress_notes"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="How are you feeling? Any achievements or challenges?"></textarea>
+                        </div>
+
+                        <!-- BMI Preview -->
+                        <div class="alert alert-secondary mb-3" id="bmiPreview">
+                            <h6 class="alert-heading">BMI Preview</h6>
+                            <p class="mb-1">Enter height and weight to see BMI calculation</p>
+                            <div class="progress mb-2" style="height: 10px;">
+                                <div class="progress-bar" id="bmiProgress" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted" id="bmiCategory">-</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-save me-2"></i>Save Progress Entry
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Progress Insights -->
+            {% if progress_insights %}
+            <div class="card shadow mt-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Progress Insights
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for insight in progress_insights %}
+                    <div class="alert alert-{{ insight.type }} mb-2">
+                        <i class="fas fa-{{ insight.icon }} me-2"></i>
+                        {{ insight.message }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Charts and History -->
+        <div class="col-lg-8 mb-4">
+            <!-- Weight Progress Chart -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-weight me-2"></i>Weight Progress
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if progress_entries|length > 1 %}
+                    <canvas id="weightChart" height="100"></canvas>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Not Enough Data</h5>
+                        <p class="text-muted">Add more progress entries to see your weight trend.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- BMI Progress Chart section  -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-heartbeat me-2"></i>BMI Trend
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if progress_entries|length > 1 %}
+                    <canvas id="bmiChart" height="100"></canvas>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-area fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Not Enough Data</h5>
+                        <p class="text-muted">Add more progress entries to see your BMI trend.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Progress History -->
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Height</th>
+                            <th>Weight</th>
+                            <th>BMI</th>
+                            <th>Category</th>
+                            <th>Change</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in progress_data %}
+                        {% with progress=item.entry %}
+                        <tr>
+                            <td>
+                                <strong>{{ progress.recorded_date|date:"M d, Y" }}</strong>
+                                <br>
+                                <small class="text-muted">{{ progress.recorded_date|timesince }} ago</small>
+                            </td>
+                            <td>{{ progress.height }} cm</td>
+                            <td>
+                                <strong>{{ progress.weight }} kg</strong>
+                                {% if item.is_current %}
+                                <span class="badge bg-success ms-1">Current</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="fw-bold">{{ progress.bmi }}</span>
+                            </td>
+                            <td>
+                                <span class="badge
+                                    {% if progress.get_bmi_category == 'Underweight' %}bg-info
+                                    {% elif progress.get_bmi_category == 'Normal Weight' %}bg-success
+                                    {% elif progress.get_bmi_category == 'Overweight' %}bg-warning
+                                    {% else %}bg-danger
+                                    {% endif %}">
+                                    {{ progress.get_bmi_category }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if item.weight_change is not None %}
+                                    {% if item.weight_change > 0 %}
+                                    <span class="text-danger">
+                                        <i class="fas fa-arrow-up"></i> {{ item.weight_change|floatformat:1 }} kg
+                                    </span>
+                                    {% elif item.weight_change < 0 %}
+                                    <span class="text-success">
+                                        <i class="fas fa-arrow-down"></i> {{ item.abs_weight_change|floatformat:1 }} kg
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted">No change</span>
+                                    {% endif %}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if progress.notes %}
+                                <small class="text-muted">{{ progress.notes|truncatewords:5 }}</small>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#progressModal{{ progress.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--- BMI Categories Reference -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>BMI Categories Reference
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded">
+                            <h5 class="text-info">Underweight</h5>
+                            <p class="mb-0">Below 18.5</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded">
+                            <h5 class="text-success">Normal Weight</h5>
+                            <p class="mb-0">18.5 - 24.9</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded">
+                            <h5 class="text-warning">Overweight</h5>
+                            <p class="mb-0">25 - 29.9</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 border rounded">
+                            <h5 class="text-danger">Obese</h5>
+                            <p class="mb-0">30 and Above</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // BMI Calculation Preview (keep this part as is)
+    const heightInput = document.querySelector('input[name="height"]');
+    const weightInput = document.querySelector('input[name="weight"]');
+    const bmiPreview = document.getElementById('bmiPreview');
+    const bmiProgress = document.getElementById('bmiProgress');
+    const bmiCategory = document.getElementById('bmiCategory');
+
+    function calculateBMI() {
+        const height = parseFloat(heightInput.value);
+        const weight = parseFloat(weightInput.value);
+
+        if (height && weight && height > 0 && weight > 0) {
+            const heightM = height / 100;
+            const bmi = weight / (heightM * heightM);
+            const bmiRounded = bmi.toFixed(1);
+
+            // Update progress bar (BMI range: 15 to 40)
+            const progressPercent = Math.min(Math.max((bmi - 15) / (40 - 15) * 100, 0), 100);
+            bmiProgress.style.width = progressPercent + '%';
+
+            // Update category and color
+            let category = '';
+            let color = '';
+
+            if (bmi < 18.5) {
+                category = 'Underweight';
+                color = 'bg-info';
+            } else if (bmi < 25) {
+                category = 'Normal Weight';
+                color = 'bg-success';
+            } else if (bmi < 30) {
+                category = 'Overweight';
+                color = 'bg-warning';
+            } else {
+                category = 'Obese';
+                color = 'bg-danger';
+            }
+
+            bmiProgress.className = 'progress-bar ' + color;
+            bmiCategory.textContent = `BMI: ${bmiRounded} - ${category}`;
+            bmiPreview.querySelector('p').textContent = `BMI: ${bmiRounded}`;
+        } else {
+            bmiProgress.style.width = '0%';
+            bmiCategory.textContent = '-';
+            bmiPreview.querySelector('p').textContent = 'Enter height and weight to see BMI calculation';
+        }
+    }
+
+    if (heightInput && weightInput) {
+        heightInput.addEventListener('input', calculateBMI);
+        weightInput.addEventListener('input', calculateBMI);
+
+        // Calculate initial BMI if values are present
+        if (heightInput.value && weightInput.value) {
+            calculateBMI();
+        }
+    }
+
+    // Charts - Fixed version
+    {% if progress_entries|length > 1 %}
+    // Prepare chart data from progress_entries (not progress_data)
+    const dates = [{% for entry in progress_entries %}'{{ entry.recorded_date|date:"M d" }}'{% if not forloop.last %},{% endif %}{% endfor %}].reverse();
+    const weights = [{% for entry in progress_entries %}{{ entry.weight }}{% if not forloop.last %},{% endif %}{% endfor %}].reverse();
+    const bmis = [{% for entry in progress_entries %}{{ entry.bmi }}{% if not forloop.last %},{% endif %}{% endfor %}].reverse();
+
+    console.log('Chart data prepared:');
+    console.log('Dates:', dates);
+    console.log('Weights:', weights);
+    console.log('BMI:', bmis);
+    console.log('Number of entries:', {{ progress_entries|length }});
+
+    // Weight Chart
+    const weightCtx = document.getElementById('weightChart');
+    if (weightCtx) {
+        new Chart(weightCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Weight (kg)',
+                    data: weights,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Weight Progress Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Weight (kg)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // BMI Chart
+    const bmiCtx = document.getElementById('bmiChart');
+    if (bmiCtx) {
+        new Chart(bmiCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'BMI',
+                    data: bmis,
+                    borderColor: '#36b9cc',
+                    backgroundColor: 'rgba(54, 185, 204, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'BMI Trend Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'BMI'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

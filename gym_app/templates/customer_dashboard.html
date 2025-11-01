@@ -1,0 +1,590 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-2">
+                                <i class="fas fa-tachometer-alt me-2"></i>Welcome, {{ user.get_full_name|default:user.username }}!
+                            </h1>
+                            <p class="mb-0">Track your fitness journey and manage your courses</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center"
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-dumbbell fa-2x text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Active Courses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_enrollments.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bookmark fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Sessions This Week
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ weekly_sessions }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Membership Status
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold {% if has_active_membership %}text-success{% else %}text-danger{% endif %}">
+                                {% if has_active_membership %}Active{% else %}Expired{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-id-card fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Days Joined
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ days_joined }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Section -->
+    {% if latest_progress %}
+    <div class="row mt-4 mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-2"></i>Current Progress
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h3 class="text-primary">{{ latest_progress.height }} cm</h3>
+                            <p class="text-muted">Height</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h3 class="text-primary">{{ latest_progress.weight }} kg</h3>
+                            <p class="text-muted">Weight</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h3 class="text-primary">{{ latest_progress.bmi }}</h3>
+                            <p class="text-muted">BMI</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h3 class="text-primary">{{ latest_progress.get_bmi_category }}</h3>
+                            <p class="text-muted">Category</p>
+                            <span class="badge
+                                {% if latest_progress.get_bmi_category == 'Underweight' %}bg-info
+                                {% elif latest_progress.get_bmi_category == 'Normal Weight' %}bg-success
+                                {% elif latest_progress.get_bmi_category == 'Overweight' %}bg-warning
+                                {% else %}bg-danger
+                                {% endif %}">
+                                {{ latest_progress.get_bmi_category }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            Last updated: {{ latest_progress.recorded_date|date:"M d, Y" }}
+                        </small>
+                        <br>
+                        <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="fas fa-edit me-1"></i>Update Progress
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+            <!-- Current Enrollments Card -->
+            <div class="col-md-8 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-bookmark me-2"></i>My Current Courses
+                        </h6>
+                        <a href="{% url 'course_catalog' %}" class="btn btn-sm btn-primary">Browse Courses</a>
+                    </div>
+                    <div class="card-body">
+                        {% if active_enrollments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Course Name</th>
+                                        <th>Trainer</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for enrollment in active_enrollments %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ enrollment.course.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ enrollment.course.difficulty_level }}</small>
+                                        </td>
+                                        <td>{{ enrollment.course.trainer.name }}</td>
+                                        <td>{{ enrollment.start_date|date:"M d, Y" }}</td>
+                                        <td class="{% if enrollment.is_expiring_soon %}text-warning{% elif enrollment.is_expired %}text-danger{% endif %}">
+                                            {{ enrollment.end_date|date:"M d, Y" }}
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if enrollment.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {% if enrollment.is_active %}Active{% else %}Expired{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if enrollment.is_expiring_soon or not enrollment.is_active %}
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-sync-alt me-1"></i>Renew
+                                            </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Active Enrollments</h5>
+                            <p class="text-muted">You haven't enrolled in any courses yet.</p>
+                            <a href="{% url 'course_catalog' %}" class="btn btn-primary">
+                                <i class="fas fa-shopping-cart me-2"></i>Browse Course Catalog
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-rocket me-2"></i>Quick Access
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'course_catalog' %}" class="btn btn-outline-primary text-start">
+                                <i class="fas fa-shopping-cart me-2"></i>Buy New Course
+                            </a>
+                            <a href="{% url 'profile' %}" class="btn btn-outline-info text-start">
+                                <i class="fas fa-chart-line me-2"></i>View Progress
+                            </a>
+                            <a href="{% url 'profile' %}" class="btn btn-outline-warning text-start">
+                                <i class="fas fa-user-edit me-2"></i>Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compact Timetable -->
+<div class="card  shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-calendar-alt me-2"></i>Weekly Class Timetable
+        </h6>
+        <span class="badge bg-primary">{{ total_sessions }} sessions this week</span>
+    </div>
+    <div class="card-body p-0">
+        {% if has_timetable_data %}
+        <div class="timetable-compact">
+            <div class="row g-0">
+                <!-- Sunday -->
+                <div class="col-md-4 col-lg-12 col-xl-4 timetable-day-column">
+                    <div class="timetable-day-header bg-light py-2 px-3 border-bottom">
+                        <h6 class="mb-0 text-primary fw-bold">Sunday</h6>
+                        <small class="text-muted">{{ sunday_sessions|length }} sessions</small>
+                    </div>
+                    <div class="timetable-day-sessions p-2" style="min-height: 120px;">
+                        {% for session in sunday_sessions %}
+                        <div class="timetable-session-compact mb-2 p-2 border-start border-3 border-primary bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong class="text-dark small">{{ session.course.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ session.start_time|time:"g:i" }}-{{ session.end_time|time:"g:i" }}
+                                    </small>
+                                </div>
+                                <div class="text-end ms-2">
+                                    <small class="text-muted d-block">{{ session.course.trainer.name|truncatewords:1 }}</small>
+                                    <span class="badge bg-info small">{{ session.course.difficulty_level|slice:":3" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-coffee fa-lg mb-2"></i>
+                            <br>
+                            <small>No classes</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Monday -->
+                <div class="col-md-4 col-lg-12 col-xl-4 timetable-day-column">
+                    <div class="timetable-day-header bg-light py-2 px-3 border-bottom">
+                        <h6 class="mb-0 text-primary fw-bold">Monday</h6>
+                        <small class="text-muted">{{ monday_sessions|length }} sessions</small>
+                    </div>
+                    <div class="timetable-day-sessions p-2" style="min-height: 120px;">
+                        {% for session in monday_sessions %}
+                        <div class="timetable-session-compact mb-2 p-2 border-start border-3 border-success bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong class="text-dark small">{{ session.course.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ session.start_time|time:"g:i" }}-{{ session.end_time|time:"g:i" }}
+                                    </small>
+                                </div>
+                                <div class="text-end ms-2">
+                                    <small class="text-muted d-block">{{ session.course.trainer.name|truncatewords:1 }}</small>
+                                    <span class="badge bg-info small">{{ session.course.difficulty_level|slice:":3" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-coffee fa-lg mb-2"></i>
+                            <br>
+                            <small>No classes</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Tuesday -->
+                <div class="col-md-4 col-lg-12 col-xl-4 timetable-day-column">
+                    <div class="timetable-day-header bg-light py-2 px-3 border-bottom">
+                        <h6 class="mb-0 text-primary fw-bold">Tuesday</h6>
+                        <small class="text-muted">{{ tuesday_sessions|length }} sessions</small>
+                    </div>
+                    <div class="timetable-day-sessions p-2" style="min-height: 120px;">
+                        {% for session in tuesday_sessions %}
+                        <div class="timetable-session-compact mb-2 p-2 border-start border-3 border-info bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong class="text-dark small">{{ session.course.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ session.start_time|time:"g:i" }}-{{ session.end_time|time:"g:i" }}
+                                    </small>
+                                </div>
+                                <div class="text-end ms-2">
+                                    <small class="text-muted d-block">{{ session.course.trainer.name|truncatewords:1 }}</small>
+                                    <span class="badge bg-info small">{{ session.course.difficulty_level|slice:":3" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-coffee fa-lg mb-2"></i>
+                            <br>
+                            <small>No classes</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Wednesday -->
+                <div class="col-md-4 col-lg-12 col-xl-4 timetable-day-column">
+                    <div class="timetable-day-header bg-light py-2 px-3 border-bottom">
+                        <h6 class="mb-0 text-primary fw-bold">Wednesday</h6>
+                        <small class="text-muted">{{ wednesday_sessions|length }} sessions</small>
+                    </div>
+                    <div class="timetable-day-sessions p-2" style="min-height: 120px;">
+                        {% for session in wednesday_sessions %}
+                        <div class="timetable-session-compact mb-2 p-2 border-start border-3 border-warning bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong class="text-dark small">{{ session.course.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ session.start_time|time:"g:i" }}-{{ session.end_time|time:"g:i" }}
+                                    </small>
+                                </div>
+                                <div class="text-end ms-2">
+                                    <small class="text-muted d-block">{{ session.course.trainer.name|truncatewords:1 }}</small>
+                                    <span class="badge bg-info small">{{ session.course.difficulty_level|slice:":3" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-coffee fa-lg mb-2"></i>
+                            <br>
+                            <small>No classes</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Thursday -->
+                <div class="col-md-4 col-lg-12 col-xl-4 timetable-day-column">
+                    <div class="timetable-day-header bg-light py-2 px-3 border-bottom">
+                        <h6 class="mb-0 text-primary fw-bold">Thursday</h6>
+                        <small class="text-muted">{{ thursday_sessions|length }} sessions</small>
+                    </div>
+                    <div class="timetable-day-sessions p-2" style="min-height: 120px;">
+                        {% for session in thursday_sessions %}
+                        <div class="timetable-session-compact mb-2 p-2 border-start border-3 border-danger bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong class="text-dark small">{{ session.course.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ session.start_time|time:"g:i" }}-{{ session.end_time|time:"g:i" }}
+                                    </small>
+                                </div>
+                                <div class="text-end ms-2">
+                                    <small class="text-muted d-block">{{ session.course.trainer.name|truncatewords:1 }}</small>
+                                    <span class="badge bg-info small">{{ session.course.difficulty_level|slice:":3" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-coffee fa-lg mb-2"></i>
+                            <br>
+                            <small>No classes</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Friday -->
+                <div class="col-md-4 col-lg-12 col-xl-4 timetable-day-column">
+                    <div class="timetable-day-header bg-light py-2 px-3 border-bottom">
+                        <h6 class="mb-0 text-primary fw-bold">Friday</h6>
+                        <small class="text-muted">{{ friday_sessions|length }} sessions</small>
+                    </div>
+                    <div class="timetable-day-sessions p-2" style="min-height: 120px;">
+                        {% for session in friday_sessions %}
+                        <div class="timetable-session-compact mb-2 p-2 border-start border-3 border-secondary bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong class="text-dark small">{{ session.course.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ session.start_time|time:"g:i" }}-{{ session.end_time|time:"g:i" }}
+                                    </small>
+                                </div>
+                                <div class="text-end ms-2">
+                                    <small class="text-muted d-block">{{ session.course.trainer.name|truncatewords:1 }}</small>
+                                    <span class="badge bg-info small">{{ session.course.difficulty_level|slice:":3" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-coffee fa-lg mb-2"></i>
+                            <br>
+                            <small>No classes</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Saturday -->
+                <div class="col-md-4 col-lg-12 col-xl-4 timetable-day-column">
+                    <div class="timetable-day-header bg-light py-2 px-3 border-bottom">
+                        <h6 class="mb-0 text-primary fw-bold">Saturday</h6>
+                        <small class="text-muted">{{ saturday_sessions|length }} sessions</small>
+                    </div>
+                    <div class="timetable-day-sessions p-2" style="min-height: 120px;">
+                        {% for session in saturday_sessions %}
+                        <div class="timetable-session-compact mb-2 p-2 border-start border-3 border-dark bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong class="text-dark small">{{ session.course.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ session.start_time|time:"g:i" }}-{{ session.end_time|time:"g:i" }}
+                                    </small>
+                                </div>
+                                <div class="text-end ms-2">
+                                    <small class="text-muted d-block">{{ session.course.trainer.name|truncatewords:1 }}</small>
+                                    <span class="badge bg-info small">{{ session.course.difficulty_level|slice:":3" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-coffee fa-lg mb-2"></i>
+                            <br>
+                            <small>No classes</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No Classes Scheduled</h5>
+            <p class="text-muted">Enroll in courses to see your timetable.</p>
+            <a href="{% url 'course_catalog' %}" class="btn btn-primary">
+                <i class="fas fa-shopping-cart me-2"></i>Browse Courses
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+
+<style>
+.border-left-primary { border-left: 4px solid #4e73df !important; }
+.border-left-success { border-left: 4px solid #1cc88a !important; }
+.border-left-info { border-left: 4px solid #36b9cc !important; }
+.border-left-warning { border-left: 4px solid #f6c23e !important; }
+
+.shadow {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+}
+
+.text-xs { font-size: 0.7rem; }
+.font-weight-bold { font-weight: 700 !important; }
+.text-gray-800 { color: #5a5c69 !important; }
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.timetable-compact .timetable-day-column {
+    border-right: 1px solid #e9ecef;
+}
+
+.timetable-compact .timetable-day-column:last-child {
+    border-right: none;
+}
+
+.timetable-day-header {
+    border-bottom: 2px solid #e9ecef;
+}
+
+.timetable-session-compact {
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+.timetable-session-compact:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .timetable-compact .timetable-day-column {
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .timetable-day-sessions {
+        min-height: auto !important;
+    }
+}
+
+@media (min-width: 1200px) {
+    .timetable-compact .timetable-day-column {
+        min-height: 300px;
+    }
+}
+</style>
+{% endblock %}
+[file content end]

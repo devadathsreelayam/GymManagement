@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+
+{% block title %}Class Timetable - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-2">
+                                <i class="fas fa-calendar-alt me-2"></i>Class Timetable
+                            </h1>
+                            <p class="mb-0">View all available class sessions. Green highlighted classes are the ones you're enrolled in.</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Your Classes
+                                </span>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-users me-1"></i>Available
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" action="{% url 'class_timetable' %}">
+                        <div class="row g-3 align-items-end">
+                            <!-- Day Filter -->
+                            <div class="col-md-3">
+                                <label class="form-label">Filter by Day</label>
+                                <select class="form-select" name="day">
+                                    <option value="">All Days</option>
+                                    <option value="Monday" {% if selected_day == 'Monday' %}selected{% endif %}>Monday</option>
+                                    <option value="Tuesday" {% if selected_day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
+                                    <option value="Wednesday" {% if selected_day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
+                                    <option value="Thursday" {% if selected_day == 'Thursday' %}selected{% endif %}>Thursday</option>
+                                    <option value="Friday" {% if selected_day == 'Friday' %}selected{% endif %}>Friday</option>
+                                    <option value="Saturday" {% if selected_day == 'Saturday' %}selected{% endif %}>Saturday</option>
+                                    <option value="Sunday" {% if selected_day == 'Sunday' %}selected{% endif %}>Sunday</option>
+                                </select>
+                            </div>
+
+                            <!-- Trainer Filter -->
+                            <div class="col-md-3">
+                                <label class="form-label">Filter by Trainer</label>
+                                <select class="form-select" name="trainer">
+                                    <option value="">All Trainers</option>
+                                    {% for trainer in trainers %}
+                                    <option value="{{ trainer.id }}"
+                                            {% if selected_trainer == trainer.id|stringformat:"i" %}selected{% endif %}>
+                                        {{ trainer.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Specialization Filter -->
+                            <div class="col-md-3">
+                                <label class="form-label">Filter by Specialization</label>
+                                <select class="form-select" name="specialization">
+                                    <option value="">All Specializations</option>
+                                    {% for spec_code, spec_name in specializations %}
+                                    <option value="{{ spec_code }}"
+                                            {% if selected_specialization == spec_code %}selected{% endif %}>
+                                        {{ spec_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="col-md-3">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary flex-fill">
+                                        <i class="fas fa-filter me-1"></i>Apply Filters
+                                    </button>
+                                    <a href="{% url 'class_timetable' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timetable -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-0">
+                    {% if timetable %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered timetable-table mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th width="15%">Time</th>
+                                    {% for day in days_order %}
+                                        {% if day in timetable %}
+                                        <th>{{ day }}</th>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for time_slot in unique_times %}
+                                <tr>
+                                    <td class="time-slot bg-light fw-bold">
+                                        {{ time_slot }}
+                                    </td>
+                                    {% for day in days_order %}
+                                        {% if day in timetable %}
+                                        <td class="session-cell">
+                                            {% if time_slot in timetable|get_item:day %}
+                                                {% for session in timetable|get_item:day|get_item:time_slot %}
+                                                <div class="session-card {% if session.course.id in enrolled_courses %}enrolled-session{% else %}available-session{% endif %}">
+                                                    <div class="session-header">
+                                                        <h6 class="mb-1">{{ session.course.name }}</h6>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user me-1"></i>{{ session.course.trainer.name }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="session-details">
+                                                        <small>
+                                                            <i class="fas fa-star me-1"></i>{{ session.course.trainer.specialization }}
+                                                        </small>
+                                                        <br>
+                                                        <small>
+                                                            <i class="fas fa-signal me-1"></i>{{ session.course.difficulty_level }}
+                                                        </small>
+                                                        <br>
+                                                        <small>
+                                                            <i class="fas fa-users me-1"></i>
+                                                            {{ session.course.current_enrollment }}/{{ session.course.capacity }}
+                                                        </small>
+                                                    </div>
+                                                    {% if session.course.id in enrolled_courses %}
+                                                    <div class="session-status enrolled">
+                                                        <i class="fas fa-check-circle me-1"></i>Enrolled
+                                                    </div>
+                                                    {% else %}
+                                                    <div class="session-status available">
+                                                        <i class="fas fa-info-circle me-1"></i>Available
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </td>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No classes scheduled</h4>
+                        <p class="text-muted">No classes match your current filters. Try adjusting your filters or check back later.</p>
+                        <a href="{% url 'class_timetable' %}" class="btn btn-primary">
+                            <i class="fas fa-refresh me-1"></i>Clear Filters
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">
+                        <i class="fas fa-info-circle me-2"></i>Legend
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="legend-color enrolled-color me-2"></div>
+                                <span>Your Enrolled Classes</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="legend-color available-color me-2"></div>
+                                <span>Available Classes</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-users text-muted me-2"></i>
+                                <span>Current/Max Capacity</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-star text-warning me-2"></i>
+                                <span>Trainer Specialization</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timetable-table {
+    font-size: 0.875rem;
+}
+
+.time-slot {
+    vertical-align: middle;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.session-cell {
+    vertical-align: top;
+    padding: 4px;
+    min-height: 120px;
+}
+
+.session-card {
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 4px;
+    border-left: 4px solid;
+    transition: all 0.2s ease;
+}
+
+.session-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.enrolled-session {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    border-left-color: #28a745;
+}
+
+.available-session {
+    background: linear-gradient(135deg, #e2e3e5, #d6d8db);
+    border-left-color: #6c757d;
+}
+
+.session-header h6 {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+    color: #2c3e50;
+}
+
+.session-details {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.session-status {
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-top: 4px;
+    padding: 2px 6px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.session-status.enrolled {
+    background: #28a745;
+    color: white;
+}
+
+.session-status.available {
+    background: #6c757d;
+    color: white;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border-left: 4px solid;
+}
+
+.enrolled-color {
+    background: #d4edda;
+    border-left-color: #28a745;
+}
+
+.available-color {
+    background: #e2e3e5;
+    border-left-color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+
+    .session-card {
+        padding: 6px;
+    }
+
+    .session-header h6 {
+        font-size: 0.75rem;
+    }
+
+    .session-details {
+        font-size: 0.7rem;
+    }
+}
+</style>
+{% endblock %}

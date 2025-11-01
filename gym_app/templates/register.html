@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - FitPro Gym{% endblock %}
+
+{% block extra_css %}
+<style>
+.payment-loading {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.payment-spinner {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.membership-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #e9ecef;
+}
+
+.membership-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.membership-card.selected {
+    border-color: #667eea;
+    background-color: #f8f9ff;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Join FitPro Gym
+                    </h2>
+                    <p class="mb-0 mt-2">Create your account and start your fitness journey</p>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Registration Form -->
+                    <form id="registrationForm" method="POST" action="{% url 'payment_gateway' %}">
+                        {% csrf_token %}
+
+                        <div id="personalInfoSection">
+                            <h5 class="text-primary mb-4">
+                                <i class="fas fa-user-circle me-2"></i>Personal Details
+                            </h5>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="first_name" class="form-label">First Name</label>
+                                    <input type="text" name="first_name" id="first_name" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    <input type="text" name="last_name" id="last_name" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" name="email" id="email" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Address</label>
+                                <textarea name="address" id="address" class="form-control" rows="3" required></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" name="phone" id="phone" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="contact" class="form-label">Alternative Contact</label>
+                                    <input type="tel" name="contact" id="contact" class="form-control">
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <h5 class="text-primary mb-4">
+                                <i class="fas fa-id-card me-2"></i>Membership Selection
+                            </h5>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card membership-card" onclick="selectMembership('Basic')">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-primary">Basic Membership</h5>
+                                            <h3 class="text-success">₹500</h3>
+                                            <p class="text-muted small">One-time payment</p>
+                                            <ul class="list-unstyled small text-start">
+                                                <li><i class="fas fa-check text-success me-2"></i>Access to gym facilities</li>
+                                                <li><i class="fas fa-check text-success me-2"></i>Basic equipment usage</li>
+                                                <li><i class="fas fa-times text-muted me-2"></i>Premium classes</li>
+                                                <li><i class="fas fa-times text-muted me-2"></i>Personal trainer</li>
+                                            </ul>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="membership_type" id="basic_membership" value="Basic" checked>
+                                                <label class="form-check-label" for="basic_membership">
+                                                    Select Basic
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="card membership-card" onclick="selectMembership('Premium')">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-warning">Premium Membership</h5>
+                                            <h3 class="text-success">₹1000</h3>
+                                            <p class="text-muted small">One-time payment</p>
+                                            <ul class="list-unstyled small text-start">
+                                                <li><i class="fas fa-check text-success me-2"></i>All Basic features</li>
+                                                <li><i class="fas fa-check text-success me-2"></i>All premium classes</li>
+                                                <li><i class="fas fa-check text-success me-2"></i>Personal trainer sessions</li>
+                                                <li><i class="fas fa-check text-success me-2"></i>Nutrition planning</li>
+                                            </ul>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="membership_type" id="premium_membership" value="Premium">
+                                                <label class="form-check-label" for="premium_membership">
+                                                    Select Premium
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <h5 class="text-primary mb-4">
+                                <i class="fas fa-user me-2"></i>Account Information
+                            </h5>
+
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" name="username" id="username" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password1" class="form-label">Password</label>
+                                <input type="password" name="password1" id="password1" class="form-control" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password2" class="form-label">Confirm Password</label>
+                                <input type="password" name="password2" id="password2" class="form-control" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="terms" id="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <a href="#" class="text-primary">Terms and Conditions</a> and <a href="#" class="text-primary">Privacy Policy</a>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-credit-card me-2"></i>Proceed to Payment
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Loading Overlay -->
+<div class="payment-loading" id="paymentLoading">
+    <div class="payment-spinner">
+        <div class="spinner-border text-primary mb-3" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <h5>Processing Payment...</h5>
+        <p class="text-muted">Please wait while we process your payment</p>
+    </div>
+</div>
+
+<script>
+// Membership selection
+function selectMembership(type) {
+    document.getElementById(type.toLowerCase() + '_membership').checked = true;
+    document.querySelectorAll('.membership-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    document.querySelectorAll('.membership-card').forEach(card => {
+        if (card.querySelector('input[value="' + type + '"]')) {
+            card.classList.add('selected');
+        }
+    });
+}
+
+// Initialize membership selection
+document.addEventListener('DOMContentLoaded', function() {
+    selectMembership('Basic');
+
+    // Show loading when form is submitted
+    document.getElementById('registrationForm').addEventListener('submit', function() {
+        document.getElementById('paymentLoading').style.display = 'flex';
+    });
+});
+</script>
+{% endblock %}

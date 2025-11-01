@@ -1,0 +1,522 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Reports & Analytics - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-2">
+                                <i class="fas fa-chart-bar me-2"></i>Reports & Analytics
+                            </h1>
+                            <p class="mb-0">Comprehensive payment statistics and business insights</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center"
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-chart-line fa-2x text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-filter me-2"></i>Report Filters
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'admin_reports' %}">
+                        <div class="row g-3 align-items-end">
+                            <!-- Date Range -->
+                            <div class="col-md-3">
+                                <label class="form-label">Date Range</label>
+                                <select class="form-select" name="date_range">
+                                    {% for value, label in date_ranges %}
+                                    <option value="{{ value }}" {% if date_range == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Payment Type -->
+                            <div class="col-md-3">
+                                <label class="form-label">Payment Type</label>
+                                <select class="form-select" name="payment_type">
+                                    {% for value, label in payment_types %}
+                                    <option value="{{ value }}" {% if payment_type == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Report Period Display -->
+                            <div class="col-md-4">
+                                <div class="bg-light p-3 rounded">
+                                    <small class="text-muted">Reporting Period:</small>
+                                    <br>
+                                    <strong>{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}</strong>
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="col-md-2">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary flex-grow-1">
+                                        <i class="fas fa-refresh me-1"></i>Update
+                                    </button>
+                                    <a href="{% url 'admin_reports' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Revenue
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ total_revenue|floatformat:2|intcomma }}</div>
+                            <div class="text-xs text-muted mt-1">
+                                {{ total_transactions }} transactions
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Avg. Transaction
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ avg_transaction_value|floatformat:2|intcomma }}</div>
+                            <div class="text-xs text-muted mt-1">
+                                Per payment
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calculator fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Membership Revenue
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ membership_revenue|floatformat:2|intcomma }}</div>
+                            <div class="text-xs text-muted mt-1">
+                                Member subscriptions
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-id-card fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Course Revenue
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ course_revenue|floatformat:2|intcomma }}</div>
+                            <div class="text-xs text-muted mt-1">
+                                Course enrollments
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dumbbell fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Revenue Trend Chart -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-2"></i>Revenue Trend
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="revenueChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Distribution -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>Revenue Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie">
+                        <canvas id="revenuePieChart" height="250"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-primary"></i> Membership
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> Courses
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Reports -->
+    <div class="row">
+        <!-- Top Courses by Revenue -->
+        <div class="col-xl-6 col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-trophy me-2"></i>Top Courses by Revenue
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if top_courses %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Enrollments</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in top_courses %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ course.enrollment__course__name|default:"Unknown Course" }}</strong>
+                                    </td>
+                                    <td>{{ course.enrollment_count }}</td>
+                                    <td class="text-success fw-bold">₹{{ course.total_revenue|floatformat:2|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-bar fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No course revenue data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Membership Plan Revenue -->
+        <div class="col-xl-6 col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-id-badge me-2"></i>Membership Plan Performance
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if membership_distribution %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Payments</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for plan in membership_distribution %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-info">{{ plan.member__membership_plan__name|default:"Unknown Plan" }}</span>
+                                    </td>
+                                    <td>{{ plan.payment_count }}</td>
+                                    <td class="text-success fw-bold">₹{{ plan.total_revenue|floatformat:2|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No membership revenue data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-credit-card me-2"></i>Recent Payments
+                </h6>
+                <span class="badge bg-primary">{{ recent_membership_payments.count|add:recent_course_payments.count }} payments</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Member</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Membership Payments -->
+                            {% for payment in recent_membership_payments %}
+                            <tr>
+                                <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                <td>{{ payment.member.user.get_full_name|default:payment.member.user.username }}</td>
+                                <td><span class="badge bg-primary">Membership</span></td>
+                                <td>{{ payment.member.membership_plan.name }} Plan</td>
+                                <td class="text-success fw-bold">₹{{ payment.amount|floatformat:2 }}</td>
+                                <td><span class="badge bg-success">{{ payment.status|title }}</span></td>
+                            </tr>
+                            {% endfor %}
+
+                            <!-- Course Payments -->
+                            {% for payment in recent_course_payments %}
+                            <tr>
+                                <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                <td>{{ payment.enrollment.member.user.get_full_name|default:payment.enrollment.member.user.username }}</td>
+                                <td><span class="badge bg-success">Course</span></td>
+                                <td>{{ payment.enrollment.course.name }}</td>
+                                <td class="text-success fw-bold">₹{{ payment.amount|floatformat:2 }}</td>
+                                <td><span class="badge bg-success">{{ payment.status|title }}</span></td>
+                            </tr>
+                            {% endfor %}
+
+                            {% if not recent_membership_payments and not recent_course_payments %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <i class="fas fa-credit-card fa-2x text-muted mb-3"></i>
+                                    <p class="text-muted">No payment data available for the selected period</p>
+                                    <small class="text-muted">Payments will appear here once members start enrolling</small>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Revenue Trend Chart
+const dailyRevenueData = {{ daily_revenue_json|safe }};
+const dates = dailyRevenueData.map(item => {
+    const date = new Date(item.date);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+});
+const membershipRevenue = dailyRevenueData.map(item => item.membership);
+const courseRevenue = dailyRevenueData.map(item => item.course);
+const totalRevenue = dailyRevenueData.map(item => item.total);
+
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const revenueChart = new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: dates,
+        datasets: [
+            {
+                label: 'Membership Revenue',
+                data: membershipRevenue,
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                fill: true,
+                tension: 0.4
+            },
+            {
+                label: 'Course Revenue',
+                data: courseRevenue,
+                borderColor: '#1cc88a',
+                backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                fill: true,
+                tension: 0.4
+            },
+            {
+                label: 'Total Revenue',
+                data: totalRevenue,
+                borderColor: '#f6c23e',
+                backgroundColor: 'rgba(246, 194, 62, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderDash: [5, 5]
+            }
+        ]
+    },
+    options: {
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                }
+            },
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '₹' + value.toLocaleString();
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ₹' + context.parsed.y.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Revenue Distribution Pie Chart
+const pieCtx = document.getElementById('revenuePieChart').getContext('2d');
+const pieChart = new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Membership Revenue', 'Course Revenue'],
+        datasets: [{
+            data: [{{ membership_revenue }}, {{ course_revenue }}],
+            backgroundColor: ['#4e73df', '#1cc88a'],
+            hoverBackgroundColor: ['#2e59d9', '#17a673'],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.label || '';
+                        const value = context.parsed;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = Math.round((value / total) * 100);
+                        return `${label}: ₹${value.toLocaleString()} (${percentage}%)`;
+                    }
+                }
+            }
+        },
+        cutout: '70%',
+    },
+});
+</script>
+
+<style>
+.border-left-primary { border-left: 4px solid #4e73df !important; }
+.border-left-success { border-left: 4px solid #1cc88a !important; }
+.border-left-info { border-left: 4px solid #36b9cc !important; }
+.border-left-warning { border-left: 4px solid #f6c23e !important; }
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6e707e;
+    background-color: #f8f9fc;
+}
+
+.chart-area {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+.chart-pie {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+</style>
+{% endblock %}

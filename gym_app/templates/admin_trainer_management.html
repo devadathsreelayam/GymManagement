@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}Trainer Management - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-2">
+                                <i class="fas fa-user-tie me-2"></i>Trainer Management
+                            </h1>
+                            <p class="mb-0">Manage all gym trainers, add new trainers, and update existing ones</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'admin_add_trainer' %}" class="btn btn-light">
+                                <i class="fas fa-plus me-1"></i>Add New Trainer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Trainers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_trainers }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-tie fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Trainers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_trainers }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Inactive Trainers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ inactive_trainers }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-times fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Filtered Results
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ trainers.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-filter fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-search me-2"></i>Search & Filters
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'admin_trainer_management' %}">
+                        <div class="row g-3">
+                            <!-- Search -->
+                            <div class="col-md-3">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="search"
+                                           placeholder="Search by name or description..."
+                                           value="{{ search_query }}">
+                                </div>
+                            </div>
+
+                            <!-- Specialization Filter -->
+                            <div class="col-md-3">
+                                <select class="form-select" name="specialization">
+                                    <option value="">All Specializations</option>
+                                    {% for spec_code, spec_name in specializations %}
+                                    <option value="{{ spec_code }}" {% if specialization_filter == spec_code %}selected{% endif %}>
+                                        {{ spec_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Status Filter -->
+                            <div class="col-md-2">
+                                <select class="form-select" name="status">
+                                    <option value="">All Status</option>
+                                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                                </select>
+                            </div>
+
+                            <!-- Sort By -->
+                            <div class="col-md-2">
+                                <select class="form-select" name="sort">
+                                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name A-Z</option>
+                                    <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>Name Z-A</option>
+                                    <option value="-is_active" {% if sort_by == '-is_active' %}selected{% endif %}>Active First</option>
+                                    <option value="is_active" {% if sort_by == 'is_active' %}selected{% endif %}>Inactive First</option>
+                                </select>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="col-md-2">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary d-flex gap-2 align-items-center">
+                                        <i class="fas fa-filter me-1"></i>Apply
+                                    </button>
+                                    <a href="{% url 'admin_trainer_management' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trainers Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list me-2"></i>Trainers List
+                    </h6>
+                    <span class="badge bg-primary">{{ trainers.count }} trainer(s)</span>
+                </div>
+                <div class="card-body">
+                    {% if trainers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Trainer</th>
+                                    <th>Specialization</th>
+                                    <th>Description</th>
+                                    <th>Courses</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trainer in trainers %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary rounded-circle p-2 me-3 text-white">
+                                                <i class="fas fa-user-tie"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ trainer.name }}</strong>
+                                                {% if trainer.description %}
+                                                <br>
+                                                <small class="text-muted">{{ trainer.description|truncatewords:10 }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ trainer.specialization }}</span>
+                                    </td>
+                                    <td>
+                                        {% if trainer.description %}
+                                        <small class="text-muted">{{ trainer.description|truncatewords:15 }}</small>
+                                        {% else %}
+                                        <small class="text-muted">No description</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">{{ trainer.courses.count }}</span> courses
+                                        <br>
+                                        <small class="text-muted">
+                                            {% with active_courses=trainer.courses.filter.is_active %}
+                                            {{ active_courses }} active
+                                            {% endwith %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if trainer.is_active %}success{% else %}secondary{% endif %}">
+                                            {% if trainer.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'admin_trainer_detail' trainer.id %}"
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin_edit_trainer' trainer.id %}"
+                                               class="btn btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="POST" action="{% url 'admin_toggle_trainer_status' trainer.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="btn btn-{% if trainer.is_active %}outline-warning{% else %}outline-success{% endif %}"
+                                                        title="{% if trainer.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                                    <i class="fas fa-{% if trainer.is_active %}times{% else %}check{% endif %}"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-user-tie fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No trainers found</h5>
+                        <p class="text-muted">Try adjusting your search filters or add a new trainer</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{% url 'admin_trainer_management' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-refresh me-1"></i>Clear Filters
+                            </a>
+                            <a href="{% url 'admin_add_trainer' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Add First Trainer
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary { border-left: 4px solid #4e73df !important; }
+.border-left-success { border-left: 4px solid #1cc88a !important; }
+.border-left-warning { border-left: 4px solid #f6c23e !important; }
+.border-left-info { border-left: 4px solid #36b9cc !important; }
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6e707e;
+    background-color: #f8f9fc;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-2">
+                                <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                            </h1>
+                            <p class="mb-0">Monitor gym activities and manage operations efficiently</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center"
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-cog fa-2x text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Active Members
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_members }}</div>
+                            <div class="text-xs text-muted">Total: {{ total_all_members }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Trainers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_trainers }}</div>
+                            <div class="text-xs text-muted">Total: {{ total_all_trainers }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-tie fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Available Courses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_courses }}</div>
+                            <div class="text-xs text-muted">Total: {{ total_all_courses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dumbbell fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Today's Revenue
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ today_revenue }}</div>
+                            <div class="text-xs text-muted">{{ today_enrollments }} enrollments</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Quick Actions -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3 text-center">
+                            <a href="{% url 'admin_trainer_management' %}" class="btn btn-outline-primary btn-circle btn-lg">
+                                <i class="fas fa-user-tie fa-2x"></i>
+                            </a>
+                            <p class="mt-2 mb-0 small">Manage Trainers</p>
+                        </div>
+                        <div class="col-6 mb-3 text-center">
+                            <a href="{% url 'admin_course_management' %}" class="btn btn-outline-success btn-circle btn-lg">
+                                <i class="fas fa-dumbbell fa-2x"></i>
+                            </a>
+                            <p class="mt-2 mb-0 small">Manage Courses</p>
+                        </div>
+                        <div class="col-md-6 mb-3 text-center">
+                            <a href="{% url 'admin_member_management' %}" class="btn btn-outline-info btn-circle btn-lg">
+                                <i class="fas fa-users fa-2x"></i>
+                            </a>
+                            <p class="mt-2 mb-0 small">View Members</p>
+                        </div>
+                        <div class="col-6 mb-3 text-center">
+                            <a href="#reports-section" class="btn btn-outline-warning btn-circle btn-lg">
+                                <i class="fas fa-chart-bar fa-2x"></i>
+                            </a>
+                            <p class="mt-2 mb-0 small">View Reports</p>
+                        </div>
+                        <div class="col-6 mb-3 text-center">
+                            <a href="{% url 'admin:gym_app_course_add' %}" class="btn btn-outline-secondary btn-circle btn-lg">
+                                <i class="fas fa-plus fa-2x"></i>
+                            </a>
+                            <p class="mt-2 mb-0 small">Add Course</p>
+                        </div>
+                        <div class="col-6 mb-3 text-center">
+                            <a href="{% url 'admin_add_trainer' %}" class="btn btn-outline-dark btn-circle btn-lg">
+                                <i class="fas fa-user-plus fa-2x"></i>
+                            </a>
+                            <p class="mt-2 mb-0 small">Add Trainer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Members -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-plus me-2"></i>Recent Members
+                    </h6>
+                    <a href="{% url 'admin:gym_app_member_changelist' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_members %}
+                    <div class="list-group list-group-flush">
+                        {% for member in recent_members %}
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="bg-primary rounded-circle p-2 me-3 text-white">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">{{ member.user.get_full_name|default:member.user.username }}</div>
+                                <small class="text-muted">
+                                    {{ member.membership_plan.name }} • Joined {{ member.membership_purchase_date|timesince }} ago
+                                </small>
+                            </div>
+                            <span class="badge bg-{% if member.is_active %}success{% else %}secondary{% endif %}">
+                                {{ member.get_membership_status }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No recent members</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Enrollments -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-shopping-cart me-2"></i>Recent Enrollments
+                    </h6>
+                    <a href="{% url 'admin:gym_app_courseenrollment_changelist' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_enrollments %}
+                    <div class="list-group list-group-flush">
+                        {% for enrollment in recent_enrollments %}
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="bg-success rounded-circle p-2 me-3 text-white">
+                                <i class="fas fa-bookmark"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">{{ enrollment.course.name }}</div>
+                                <small class="text-muted">
+                                    {{ enrollment.member.user.get_full_name }} • ₹{{ enrollment.course.price }}
+                                </small>
+                            </div>
+                            <span class="badge bg-{% if enrollment.is_active %}success{% else %}secondary{% endif %}">
+                                {% if enrollment.is_active %}Active{% else %}Expired{% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-shopping-cart fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No recent enrollments</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Section -->
+    <div class="row" id="reports-section">
+        <div class="col-12 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-2"></i>Reports & Analytics
+                    </h6>
+                    <a href="{% url 'admin_reports' %}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Revenue Summary -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary mb-3">Revenue Summary</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center py-3">
+                                            <h5 class="text-success">₹{{ total_revenue }}</h5>
+                                            <small class="text-muted">Total Revenue</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center py-3">
+                                            <h5 class="text-info">{{ total_transactions }}</h5>
+                                            <small class="text-muted">Total Transactions</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course Popularity -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary mb-3">Popular Courses</h6>
+                            {% if popular_courses %}
+                            <div class="list-group">
+                                {% for course in popular_courses %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>{{ course.name }}</span>
+                                    <span class="badge bg-primary rounded-pill">{{ course.enrollment_count }} students</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No enrollment data available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Membership Distribution -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">Membership Distribution</h6>
+                            <div class="row">
+                                {% for plan in membership_distribution %}
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h5 class="text-primary">{{ plan.member_count }}</h5>
+                                            <small class="text-muted">{{ plan.name }} Members</small>
+                                            <div class="progress mt-2" style="height: 5px;">
+                                                <div class="progress-bar bg-primary" style="width: {{ plan.percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trainer Management Preview -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-tie me-2"></i>Trainer Management
+                    </h6>
+                    <div>
+                        <a href="{% url 'admin:gym_app_trainer_add' %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add Trainer
+                        </a>
+                        <a href="{% url 'admin:gym_app_trainer_changelist' %}" class="btn btn-sm btn-outline-primary">
+                            View All
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if active_trainers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Specialization</th>
+                                    <th>Active Courses</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trainer in active_trainers %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary rounded-circle p-2 me-2 text-white">
+                                                <i class="fas fa-user-tie"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ trainer.name }}</strong>
+                                                {% if trainer.description %}
+                                                <br><small class="text-muted">{{ trainer.description|truncatewords:5 }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ trainer.specialization }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">{{ trainer.courses.count }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if trainer.is_active %}success{% else %}secondary{% endif %}">
+                                            {% if trainer.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'admin:gym_app_trainer_change' trainer.id %}"
+                                               class="btn btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'admin:gym_app_trainer_delete' trainer.id %}"
+                                               class="btn btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-user-tie fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No trainers found</p>
+                        <a href="{% url 'admin:gym_app_trainer_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add First Trainer
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary { border-left: 4px solid #4e73df !important; }
+.border-left-success { border-left: 4px solid #1cc88a !important; }
+.border-left-info { border-left: 4px solid #36b9cc !important; }
+.border-left-warning { border-left: 4px solid #f6c23e !important; }
+
+.btn-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.shadow {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+}
+
+.text-xs { font-size: 0.7rem; }
+.font-weight-bold { font-weight: 700 !important; }
+.text-gray-800 { color: #5a5c69 !important; }
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6e707e;
+}
+
+.progress {
+    background-color: #eaecf4;
+}
+</style>
+{% endblock %}

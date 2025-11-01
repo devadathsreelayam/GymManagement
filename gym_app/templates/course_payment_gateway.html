@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Course Payment - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>Complete Course Payment
+                    </h2>
+                    <p class="mb-0 mt-2">{{ course.name }}</p>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Course Details -->
+                    <div class="course-summary mb-4 p-3 bg-light rounded">
+                        <h5 class="text-primary">Course Details</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Course:</strong> {{ course.name }}<br>
+                                <strong>Trainer:</strong> {{ course.trainer.name }}<br>
+                                <strong>Level:</strong> {{ course.difficulty_level }}
+                            </div>
+                            <div class="col-6">
+                                <strong>Duration:</strong> {{ course.duration_minutes }} minutes<br>
+                                <strong>Access:</strong> 30 days<br>
+                                <strong>Price:</strong> <span class="text-success fw-bold">₹{{ amount_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button id="pay-button" class="btn btn-primary btn-lg w-100 mb-3">
+                            <i class="fas fa-lock me-2"></i>Pay Now - ₹{{ amount_display }}
+                        </button>
+
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Secure payment powered by Razorpay
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add CSRF token for the dynamic form -->
+{% csrf_token %}
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    var options = {
+        key: '{{ razorpay_api_key }}',
+        amount: '{{ amount }}',
+        currency: 'INR',
+        name: 'FitPro Gym',
+        description: 'Course: {{ course.name }}',
+        order_id: '{{ order_id }}',
+        handler: function(response) {
+            console.log('Payment successful:', response);
+
+            // Create a form and submit it to handle registration
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'handle_course_payment_success' %}";
+
+            // Add CSRF token
+            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
+                           document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+            var csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            // Add payment details
+            var paymentId = document.createElement('input');
+            paymentId.type = 'hidden';
+            paymentId.name = 'razorpay_payment_id';
+            paymentId.value = response.razorpay_payment_id;
+            form.appendChild(paymentId);
+
+            var orderId = document.createElement('input');
+            orderId.type = 'hidden';
+            orderId.name = 'razorpay_order_id';
+            orderId.value = response.razorpay_order_id;
+            form.appendChild(orderId);
+
+            var signature = document.createElement('input');
+            signature.type = 'hidden';
+            signature.name = 'razorpay_signature';
+            signature.value = response.razorpay_signature;
+            form.appendChild(signature);
+
+            document.body.appendChild(form);
+            form.submit();
+        },
+        prefill: {
+            name: '{{ request.user.first_name }} {{ request.user.last_name }}',
+            email: '{{ request.user.email }}',
+            contact: '{{ request.user.member.phone }}'
+        },
+        theme: {
+            color: '#667eea'
+        },
+        method: {
+            upi: true,
+            netbanking: true,
+            card: true,
+            wallet: true
+        },
+        modal: {
+            ondismiss: function() {
+                console.log('Payment modal dismissed');
+                window.location.href = "{% url 'course_catalog' %}";
+            }
+        }
+    };
+
+    var rzp = new Razorpay(options);
+
+    document.getElementById('pay-button').onclick = function (e) {
+        e.preventDefault();
+        rzp.open();
+    };
+
+    // Auto-open payment modal when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Opening Razorpay modal for course payment...');
+        rzp.open();
+    });
+</script>
+
+<style>
+.course-summary {
+    border-left: 4px solid #667eea;
+}
+</style>
+{% endblock %}

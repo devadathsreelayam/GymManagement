@@ -1,0 +1,514 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - FitPro Gym{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 mb-2">
+                                <i class="fas fa-user-circle me-2"></i>My Profile
+                            </h1>
+                            <p class="mb-0">View and manage your personal information and membership details</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            {% if member and member.has_active_membership %}
+                            <span class="badge bg-success fs-6">
+                                <i class="fas fa-check-circle me-1"></i>Active Membership
+                            </span>
+                            {% else %}
+                            <span class="badge bg-danger fs-6">
+                                <i class="fas fa-exclamation-triangle me-1"></i>No Active Membership
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Personal Information -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Personal Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'profile' %}">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- First Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text"
+                                       name="first_name"
+                                       id="first_name"
+                                       class="form-control"
+                                       value="{{ user.first_name }}"
+                                       required>
+                            </div>
+
+                            <!-- Last Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text"
+                                       name="last_name"
+                                       id="last_name"
+                                       class="form-control"
+                                       value="{{ user.last_name }}"
+                                       required>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email"
+                                   name="email"
+                                   id="email"
+                                   class="form-control"
+                                   value="{{ user.email }}"
+                                   required>
+                        </div>
+
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text"
+                                   name="username"
+                                   id="username"
+                                   class="form-control"
+                                   value="{{ user.username }}"
+                                   readonly
+                                   style="background-color: #f8f9fa;">
+                            <small class="form-text text-muted">Username cannot be changed</small>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="mb-3">
+                            <label for="date_of_birth" class="form-label">Date of Birth</label>
+                            <input type="date"
+                                   name="date_of_birth"
+                                   id="date_of_birth"
+                                   class="form-control"
+                                   value="{{ member.date_of_birth|default:''|date:'Y-m-d' }}"
+                                   required>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea name="address"
+                                      id="address"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Enter your full address"
+                                      required>{% if member.address %}{{ member.address }}{% endif %}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <!-- Phone -->
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel"
+                                       name="phone"
+                                       id="phone"
+                                       class="form-control"
+                                       value="{{ member.phone|default:'' }}"
+                                       required>
+                            </div>
+
+                            <!-- Alternative Contact -->
+                            <div class="col-md-6 mb-3">
+                                <label for="contact" class="form-label">Alternative Contact</label>
+                                <input type="tel"
+                                       name="contact"
+                                       id="contact"
+                                       class="form-control"
+                                       value="{{ member.alternative_contact|default:'' }}"
+                                       placeholder="Optional">
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Membership & Quick Stats -->
+        <div class="col-lg-4">
+            <!-- Membership Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-id-card me-2"></i>Membership Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if member %}
+                    <div class="mb-3">
+                        <strong>Membership Type:</strong>
+                        <span class="badge {% if member.membership_plan.name == 'Premium' %}bg-warning{% else %}bg-secondary{% endif %} float-end">
+                            {{ member.membership_plan.name }}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Monthly Fee:</strong>
+                        <span class="float-end">₹{{ member.membership_plan.price }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Start Date:</strong>
+                        <span class="float-end">{{ member.membership_purchase_date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Days Joined:</strong>
+                        <span class="float-end {% if not member.has_active_membership %}text-danger{% endif %}">
+                            {{ days_joined }}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Status:</strong>
+                        <span class="float-end badge {% if member.has_active_membership %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if member.has_active_membership %}Active{% else %}Expired{% endif %}
+                        </span>
+                    </div>
+
+                    {% if not member.has_active_membership %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Your membership has expired. <a href="#" class="alert-link">Renew now</a> to continue accessing courses.
+                    </div>
+                    {% endif %}
+
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No membership information found. Please complete your profile.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Progress Tracking
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'profile' %}">
+                        {% csrf_token %}
+
+                        <!-- Current Stats Display -->
+                        {% if latest_progress %}
+                        <div class="alert alert-info mb-3">
+                            <h6 class="alert-heading">Current Stats ({{ latest_progress.recorded_date|date:"M d, Y" }})</h6>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <strong>{{ latest_progress.height }} cm</strong>
+                                    <br><small class="text-muted">Height</small>
+                                </div>
+                                <div class="col-4">
+                                    <strong>{{ latest_progress.weight }} kg</strong>
+                                    <br><small class="text-muted">Weight</small>
+                                </div>
+                                <div class="col-4">
+                                    <strong>{{ latest_progress.bmi }}</strong>
+                                    <br><small class="text-muted">BMI</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Update Stats Form -->
+                        <h6 class="text-primary mb-3">Update Your Progress</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Height (cm)</label>
+                                <input type="number"
+                                       name="height"
+                                       class="form-control"
+                                       value="{{ latest_progress.height|default:'' }}"
+                                       placeholder="Enter height"
+                                       min="100"
+                                       max="250"
+                                       step="0.1"
+                                       required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Weight (kg)</label>
+                                <input type="number"
+                                       name="weight"
+                                       class="form-control"
+                                       value="{{ latest_progress.weight|default:'' }}"
+                                       placeholder="Enter weight"
+                                       min="30"
+                                       max="200"
+                                       step="0.1"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Notes (Optional)</label>
+                            <textarea name="progress_notes"
+                                      class="form-control"
+                                      rows="2"
+                                      placeholder="Any notes about your current progress..."></textarea>
+                        </div>
+
+                        <!-- BMI Preview -->
+                        <div class="alert alert-secondary mb-3" id="bmiPreview">
+                            <h6 class="alert-heading">BMI Preview</h6>
+                            <p class="mb-1">Enter height and weight to see BMI calculation</p>
+                            <div class="progress mb-2" style="height: 8px;">
+                                <div class="progress-bar" id="bmiProgress" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted" id="bmiCategory">-</small>
+                        </div>
+
+                        <button type="submit" name="update_stats" class="btn btn-success w-100">
+                            <i class="fas fa-sync-alt me-2"></i>Update Progress
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="card mt-4">
+                <div class="card-header bg-warning">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-phone-alt me-2"></i>Emergency Contact
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Emergency Contact Name</label>
+                        <input type="text"
+                               name="emergency_contact_name"
+                               class="form-control"
+                               value="{{ member.emergency_contact_name|default:'' }}"
+                               placeholder="Full name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Emergency Contact Phone</label>
+                        <input type="tel"
+                               name="emergency_contact_phone"
+                               class="form-control"
+                               value="{{ member.emergency_contact_phone|default:'' }}"
+                               placeholder="Phone number">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Relationship</label>
+                        <input type="text"
+                               name="emergency_contact_relationship"
+                               class="form-control"
+                               value="{{ member.emergency_contact_relationship|default:'' }}"
+                               placeholder="Relationship">
+                    </div>
+                    <button class="btn btn-outline-warning w-100">
+                        <i class="fas fa-save me-2"></i>Save Emergency Contact
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Enrollments -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bookmark me-2"></i>My Current Course Enrollments
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if active_enrollments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Course Name</th>
+                                    <th>Trainer</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in active_enrollments %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ enrollment.course.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ enrollment.course.difficulty_level }}</small>
+                                    </td>
+                                    <td>{{ enrollment.course.trainer.name }}</td>
+                                    <td>{{ enrollment.start_date|date:"M d, Y" }}</td>
+                                    <td class="{% if enrollment.is_expiring_soon %}text-warning{% elif enrollment.is_expired %}text-danger{% endif %}">
+                                        {{ enrollment.end_date|date:"M d, Y" }}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if enrollment.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if enrollment.is_active %}Active{% else %}Expired{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-sync-alt me-1"></i>Renew
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Active Enrollments</h5>
+                        <p class="text-muted">You haven't enrolled in any courses yet.</p>
+                        <a href="{% url 'course_catalog' %}" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart me-2"></i>Browse Courses
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 10px 15px;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn {
+    border-radius: 10px;
+    padding: 10px 20px;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.5em 0.75em;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const heightInput = document.querySelector('input[name="height"]');
+    const weightInput = document.querySelector('input[name="weight"]');
+    const bmiPreview = document.getElementById('bmiPreview');
+    const bmiProgress = document.getElementById('bmiProgress');
+    const bmiCategory = document.getElementById('bmiCategory');
+
+    function calculateBMI() {
+        const height = parseFloat(heightInput.value);
+        const weight = parseFloat(weightInput.value);
+
+        if (height && weight && height > 0 && weight > 0) {
+            const heightM = height / 100;
+            const bmi = weight / (heightM * heightM);
+            const bmiRounded = bmi.toFixed(1);
+
+            // Update progress bar (BMI range: 15 to 40)
+            const progressPercent = Math.min(Math.max((bmi - 15) / (40 - 15) * 100, 0), 100);
+            bmiProgress.style.width = progressPercent + '%';
+
+            // Update category and color
+            let category = '';
+            let color = '';
+
+            if (bmi < 18.5) {
+                category = 'Underweight';
+                color = 'bg-info';
+            } else if (bmi < 25) {
+                category = 'Normal Weight';
+                color = 'bg-success';
+            } else if (bmi < 30) {
+                category = 'Overweight';
+                color = 'bg-warning';
+            } else {
+                category = 'Obese';
+                color = 'bg-danger';
+            }
+
+            bmiProgress.className = 'progress-bar ' + color;
+            bmiCategory.textContent = `BMI: ${bmiRounded} - ${category}`;
+            bmiPreview.querySelector('p').textContent = `BMI: ${bmiRounded}`;
+        } else {
+            bmiProgress.style.width = '0%';
+            bmiCategory.textContent = '-';
+            bmiPreview.querySelector('p').textContent = 'Enter height and weight to see BMI calculation';
+        }
+    }
+
+    if (heightInput && weightInput) {
+        heightInput.addEventListener('input', calculateBMI);
+        weightInput.addEventListener('input', calculateBMI);
+
+        // Calculate initial BMI if values are present
+        if (heightInput.value && weightInput.value) {
+            calculateBMI();
+        }
+    }
+});
+</script>
+{% endblock %}
